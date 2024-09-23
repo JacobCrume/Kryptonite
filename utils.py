@@ -1,11 +1,19 @@
-import yt_dlp
-import io
-from Crypto.Cipher import AES
+import requests
+import shutil
+import secrets
+import string
 
-def decryptVideo(encrypted_data, decryption_key, iv):
-    cipher = AES.new(decryption_key, AES.MODE_CBC, iv)
-    decrypted_data = cipher.decrypt(encrypted_data)
-    return decrypted_data
+def generate_nonce(length=32):
+    alphabet = string.ascii_letters + string.digits
+    nonce = ''.join(secrets.choice(alphabet) for _ in range(length))
+    return nonce
+
+def downloadFile(url, output):
+    with requests.get(url, stream=True) as r:
+        with open(output, 'wb') as f:
+            shutil.copyfileobj(r.raw, f)
+
+    return output
 
 def convertDuration(isoDuration):
     # Remove the 'PT' prefix
