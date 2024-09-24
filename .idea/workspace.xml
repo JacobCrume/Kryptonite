@@ -9,10 +9,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="86142a19-dae6-4ff5-9eae-c3c5a54f5b9b" name="Changes" comment="First semi-working commit! The code quality is terrible and there are heaps of bugs but most core functions work.">
+      <change afterPath="$PROJECT_DIR$/utils/decorators.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/TVNZ API.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TVNZ API.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Web addresses.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/decrypter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/decrypter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/response.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/tvnz.py" beforeDir="false" afterPath="$PROJECT_DIR$/tvnz.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,40 +64,40 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;JavaScript Debug.player.html.executor&quot;: &quot;Run&quot;,
-    &quot;Python.cdm.executor&quot;: &quot;Run&quot;,
-    &quot;Python.decrypter.executor&quot;: &quot;Run&quot;,
-    &quot;Python.deviceconfig.executor&quot;: &quot;Run&quot;,
-    &quot;Python.downloader.executor&quot;: &quot;Run&quot;,
-    &quot;Python.l3.executor&quot;: &quot;Run&quot;,
-    &quot;Python.parser.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.scratch.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tvnz.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/jakec/PycharmProjects/TVNZ-API/cdm/devices/android_generic&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "JavaScript Debug.player.html.executor": "Run",
+    "Python.cdm.executor": "Run",
+    "Python.decrypter.executor": "Run",
+    "Python.deviceconfig.executor": "Run",
+    "Python.downloader.executor": "Run",
+    "Python.l3.executor": "Run",
+    "Python.parser.executor": "Debug",
+    "Python.scratch.executor": "Run",
+    "Python.tvnz.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/jakec/PycharmProjects/TVNZ-API/cdm/devices/android_generic",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;HTML&quot;,
-      &quot;JavaScript&quot;
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "HTML",
+      "JavaScript"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\jakec\PycharmProjects\TVNZ-API\cdm\devices\android_generic" />
@@ -101,6 +107,7 @@
       <recent name="D:\Documents\TVNZ API\widevine_keys\cdm\devices\android_generic" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Documents\TVNZ API\utils" />
       <recent name="D:\Documents\TVNZ API" />
     </key>
   </component>
@@ -189,13 +196,13 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/TVNZ_API$decrypter.coverage" NAME="decrypter Coverage Results" MODIFIED="1727043224004" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/TVNZ_API$parser.coverage" NAME="parser Coverage Results" MODIFIED="1727049265407" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/TVNZ_API$decrypter.coverage" NAME="decrypter Coverage Results" MODIFIED="1727043224004" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/TVNZ_API$l3.coverage" NAME="l3 Coverage Results" MODIFIED="1727038760582" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/widevine_keys" />
-    <SUITE FILE_PATH="coverage/TVNZ_API$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1727085973489" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
-    <SUITE FILE_PATH="coverage/TVNZ_API$deviceconfig.coverage" NAME="deviceconfig Coverage Results" MODIFIED="1727042569334" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cdm" />
-    <SUITE FILE_PATH="coverage/TVNZ_API$tvnz.coverage" NAME="tvnz Coverage Results" MODIFIED="1727137597526" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/TVNZ_API$downloader.coverage" NAME="downloader Coverage Results" MODIFIED="1727034360741" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/TVNZ_API$tvnz.coverage" NAME="tvnz Coverage Results" MODIFIED="1727169499862" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/TVNZ_API$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1727085973489" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/TVNZ_API$cdm.coverage" NAME="cdm Coverage Results" MODIFIED="1727040509282" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/widevine_keys/cdm" />
+    <SUITE FILE_PATH="coverage/TVNZ_API$deviceconfig.coverage" NAME="deviceconfig Coverage Results" MODIFIED="1727042569334" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cdm" />
   </component>
 </project>

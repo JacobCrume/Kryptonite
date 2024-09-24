@@ -1,4 +1,5 @@
 /cdm/devices/android_generic/client_id.bin
 /cdm/devices/android_generic/private_key.pem
 response.json
-Web addresses.txt
+/.venv/
+/video/

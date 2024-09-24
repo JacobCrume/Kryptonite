@@ -3,6 +3,14 @@ import shutil
 import secrets
 import string
 
+def get_json(url: str, headers=None) -> dict:
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise RuntimeError(f"Error fetching data from {url}: {e}")
+
 def generate_nonce(length=32):
     alphabet = string.ascii_letters + string.digits
     nonce = ''.join(secrets.choice(alphabet) for _ in range(length))
