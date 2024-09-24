@@ -1,4 +1,4 @@
-<center><img src="docs%2Fimages%2Ficon.png" alt="drawing" width="120" align="center"/></center>
+<p align="center"><img src="docs%2Fimages%2Ficon.png" alt="drawing" width="120" align="center"/></p>
 
 <h1 align="center">
 Kryptonite
