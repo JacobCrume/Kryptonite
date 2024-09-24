@@ -4,6 +4,7 @@ import utils
 import yt_dlp
 import subprocess
 import os
+import shutil
 
 
 class Tvnz:
@@ -13,7 +14,7 @@ class Tvnz:
         self.POLICY_KEY = "BCpkADawqM1N12WMDn4W-_kPR1HP17qWAzLwRMnN2S11amDldHxufQMiBfcXaYthGVkx1iJgFCAkbCAJ0R-z8S-gWFcZg7BcmerduckK-Lycyvgpe4prhFDj6jCMrXMq4F5lS5FVEymSDlpMK2-lK87-RK62ifeRgK7m_Q"
         self.authorization = authorization
 
-    def _get_json(self, url, headers=None):
+    def _get_json(self, url: str, headers=None) -> dict:
         try:
             response = requests.get(url, headers=headers)
             response.raise_for_status()
@@ -21,7 +22,7 @@ class Tvnz:
         except requests.RequestException as e:
             raise RuntimeError(f"Error fetching data from {url}: {e}")
 
-    def getShow(self, showId):
+    def getShow(self, showId: str) -> dict:
         videoUrl = f"{self.BASE_URL}/api/v1/web/play/shows/{showId}"
         showMetadata = self._get_json(videoUrl)
 
@@ -54,23 +55,39 @@ class Tvnz:
 
         return showInfo
 
-    def getEpisodes(self, showId, seasonNumber=None):
+    def getEpisodes(self, showId: str, seasonNumber: int = None) -> list:
         showUrl = f"{self.BASE_URL}/api/v1/web/play/shows/{showId}"
         showMetadata = self._get_json(showUrl)
-        seasonList = self._get_json(f"{self.BASE_URL}{showMetadata['page']['href']}/episodes")["layout"]["slots"]["main"]["modules"][0]["lists"]
 
         episodes = []
-        for season in seasonList:
-            if seasonNumber is None or season["baseHref"].endswith(f"/{seasonNumber}"):
-                seasonData = self._get_json(self.BASE_URL + season["baseHref"])
-                episodes.append(utils.parseSeasonData(seasonData))
-                if seasonNumber:
-                    break
+
+        if showMetadata["showType"] == "Episodic":
+            # Get a list of seasons from TVNZ api
+            seasonList = self._get_json(f"{self.BASE_URL}{showMetadata['page']['href']}/episodes")["layout"]["slots"]["main"]["modules"][0]["lists"]
+
+            # Iterate through each season, adding its episodes to the last
+            for season in seasonList:
+                # Check if season number matches the one requested, or, if none was requested, get all the seasons
+                if seasonNumber is None or season["baseHref"].endswith(f"/{seasonNumber}"):
+                    # Get the metadata for the season and add it to the episode list
+                    seasonData = self._get_json(self.BASE_URL + season["baseHref"])
+                    episodes.append(utils.parseSeasonData(seasonData))
+                    # If a season number was requested, break the loop
+                    if seasonNumber:
+                        break
+
+        elif showMetadata["showType"] == "Movie":
+            videoInfo = self.getVideo(showMetadata["watchAction"]["videoHref"].split("/")[-1])
+            episodes.append({
+                "seasonNumber": "1",
+                "episodes": [videoInfo]
+            })
 
         return episodes
 
-    def getSchedule(self, channelName=None, date=None):
+    def getSchedule(self, channelName: str=None, date: str=None) -> dict:
         schedule = {}
+        # If a channel name is provided, get the schedule for that channel, otherwise get the schedule for all channels
         channelUrls = [f"{self.BASE_URL}/api/v1/web/play/epg/channels/{channelName}/schedule?date={date}"] if channelName else [
             self.BASE_URL + channel for channel in self._get_json(f"{self.BASE_URL}/api/v1/web/play/epg/schedule?date={date}")["epgChannels"]
         ]
@@ -94,7 +111,7 @@ class Tvnz:
 
         return schedule
 
-    def getVideo(self, videoId):
+    def getVideo(self, videoId: str) -> dict:
         videoUrl = f"{self.BASE_URL}/api/v1/web/play/video/{videoId}"
         videoMetadata = self._get_json(videoUrl)
 
@@ -124,11 +141,12 @@ class Tvnz:
 
         return videoInfo
 
-    def search(self, query):
+    def search(self, query: str) -> list:
         searchResults = self._get_json(f"{self.BASE_URL}/api/v1/web/play/search?q={query}")
         results = []
 
         for result in searchResults["results"]:
+            # Check if the result is a show or movie, as they have different metadata
             if result["type"] == "show":
                 show = {
                     "title": result["title"],
@@ -156,6 +174,7 @@ class Tvnz:
                     } if result["portraitTileImage"] else None
                 }
                 results.append(show)
+            # Check if the result is a sports or new video, as they have different metadata
             elif result["type"] in ["sportVideo", "newsVideo"]:
                 video = {
                     "title": result["title"],
@@ -176,7 +195,7 @@ class Tvnz:
 
         return results
 
-    def getCategory(self, categoryName):
+    def getCategory(self, categoryName: str) -> dict:
         categoryPage = self._get_json(f"{self.BASE_URL}/api/v1/web/play/page/categories/{categoryName}")
         categoryInfo = {
             "title": categoryPage["title"],
@@ -217,19 +236,22 @@ class Tvnz:
 
         return categoryInfo
 
-    def getAllShowIds(self):
+    def getAllShowIds(self) -> list:
         showList = self._get_json(f"{self.BASE_URL}/api/v1/web/play/shows")
         return [show.split("/")[-1] for show in showList]
 
-    def downloadVideo(self, videoId, output):
+    def downloadVideo(self, videoId: str, output: str) -> int:
+        # Get video info, specifically as the video's brightcove id and account id
         videoInfo = self.getVideo(videoId)
         playbackInfoUrl = f"https://playback.brightcovecdn.com/playback/v1/accounts/{videoInfo['brightcove']['accountId']}/videos/{videoInfo['brightcove']['videoId']}"
         playbackInfo = self._get_json(playbackInfoUrl, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
 
+        # Get the decryption keys for the video
         licenseUrl = playbackInfo["sources"][2]["key_systems"]["com.widevine.alpha"]["license_url"]
         mpdUrl = playbackInfo["sources"][2]["src"].replace("http://", "https://")
         decryptionKeys = decrypter.getDecryptionKeys(mpdUrl, licenseUrl)
 
+        # Download the video and audio files
         videoOptions = {
             'allow_unplayable_formats': True,
             'outtmpl': 'video/video.%(ext)s',
@@ -239,30 +261,45 @@ class Tvnz:
         videoDownloader = yt_dlp.YoutubeDL(videoOptions)
         videoDownloader.download([mpdUrl])
 
+        # Rename the video files to remove the random text in the filename
         os.chdir("video")
         for file in os.listdir():
             os.rename(file, "video." + file.split(".")[-1])
 
+        # Decrypt the video and audio files
         subprocess.run(['mp4decrypt', '--key', decryptionKeys, 'video.m4a', 'audioDec.m4a'], check=True)
         subprocess.run(['mp4decrypt', '--key', decryptionKeys, 'video.mp4', 'videoDec.mp4'], check=True)
         os.chdir("..")
 
-        subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', 'video/videoDec.mp4', '-i', 'video/audioDec.m4a', '-c', 'copy', output], check=True)
+        # Combine the video and audio files
+        subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', 'video/videoDec.mp4', '-i',
+                        'video/audioDec.m4a', '-c', 'copy', 'video/final.mp4'], check=True)
 
+        # Clean up the files
         os.remove("video/video.m4a")
         os.remove("video/video.mp4")
         os.remove("video/videoDec.mp4")
         os.remove("video/audioDec.m4a")
 
-    def getSubtitles(self, videoId):
+        # Move the final video to the output directory
+        shutil.move("video/final.mp4", output)
+
+        # Check if the file was downloaded successfully
+        if os.path.exists(output):
+            return 0
+        else:
+            return 1
+
+    def getSubtitles(self, videoId: str) -> str:
         videoInfo = self.getVideo(videoId)
         playbackInfoUrl = f"https://playback.brightcovecdn.com/playback/v1/accounts/{videoInfo['brightcove']['accountId']}/videos/{videoInfo['brightcove']['videoId']}"
         playbackInfo = self._get_json(playbackInfoUrl, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
 
+        # Get the subtitles url and download the subtitles
         subtitlesUrl = playbackInfo["text_tracks"][0]["sources"][1]["src"]
-        return requests.get(subtitlesUrl).content
+        return requests.get(subtitlesUrl).text
 
-    def login(self):
+    def login(self) -> str:
         # Authentication request
         auth = requests.post("https://login.tvnz.co.nz/co/authenticate", headers={
             "Origin": "https://login.tech.tvnz.co.nz",
@@ -296,7 +333,7 @@ class Tvnz:
 
 def main():
     api = Tvnz()
-    print(api.getSchedule("TVONE", "2024-09-23"))
+    print(api.getEpisodes("190972"))
 
 
 if __name__ == "__main__":
