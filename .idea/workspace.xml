@@ -8,17 +8,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86142a19-dae6-4ff5-9eae-c3c5a54f5b9b" name="Changes" comment="First semi-working commit! The code quality is terrible and there are heaps of bugs but most core functions work.">
-      <change afterPath="$PROJECT_DIR$/utils/decorators.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/TVNZ API.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TVNZ API.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="86142a19-dae6-4ff5-9eae-c3c5a54f5b9b" name="Changes" comment="Renamed project, started working on documentation">
+      <change beforePath="$PROJECT_DIR$/.idea/TVNZ API.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Kryptonite.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Web addresses.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/decrypter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/decrypter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/response.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tvnz.py" beforeDir="false" afterPath="$PROJECT_DIR$/tvnz.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,12 +35,12 @@
     &quot;assignee&quot;: &quot;JacobCrume&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/JacobCrume/TVNZ-API.git&quot;,
-    &quot;accountId&quot;: &quot;2d6be6ee-1bd6-47c6-8a3e-7cd4430ef4b5&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/JacobCrume/Kryptonite.git",
+    "accountId": "2d6be6ee-1bd6-47c6-8a3e-7cd4430ef4b5"
   }
-}</component>
+}]]></component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -81,14 +74,14 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/jakec/PycharmProjects/TVNZ-API/cdm/devices/android_generic",
+    "last_opened_file_path": "D:/Documents/Kryptonite/docs/images",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -100,11 +93,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Documents\Kryptonite\docs\images" />
       <recent name="C:\Users\jakec\PycharmProjects\TVNZ-API\cdm\devices\android_generic" />
       <recent name="D:\Documents\TVNZ API\video" />
       <recent name="D:\Documents\TVNZ API" />
       <recent name="D:\Documents\TVNZ API\cdm" />
-      <recent name="D:\Documents\TVNZ API\widevine_keys\cdm\devices\android_generic" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\Documents\TVNZ API\utils" />
@@ -113,7 +106,7 @@
   </component>
   <component name="RunManager">
     <configuration name="tvnz" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="TVNZ API" />
+      <module name="Kryptonite" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -144,7 +137,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-5a2391486177-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13763.11" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PY-242.22855.92" />
+        <option value="bundled-python-sdk-b068d85d1acf-399fe30bd8c1-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.22855.92" />
       </set>
     </attachedChunks>
   </component>
@@ -165,6 +159,7 @@
       <workItem from="1727134834066" duration="1048000" />
       <workItem from="1727136617825" duration="2319000" />
       <workItem from="1727138984067" duration="912000" />
+      <workItem from="1727171770087" duration="4433000" />
     </task>
     <task id="LOCAL-00001" summary="First semi-working commit! The code quality is terrible and there are heaps of bugs but most core functions work.">
       <option name="closed" value="true" />
@@ -174,7 +169,15 @@
       <option name="project" value="LOCAL" />
       <updated>1727067427886</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Finished the login function; added a bunch of methods that can interact with the user's data">
+      <option name="closed" value="true" />
+      <created>1727170707634</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1727170707634</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -182,7 +185,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="First semi-working commit! The code quality is terrible and there are heaps of bugs but most core functions work." />
-    <option name="LAST_COMMIT_MESSAGE" value="First semi-working commit! The code quality is terrible and there are heaps of bugs but most core functions work." />
+    <MESSAGE value="Finished the login function; added a bunch of methods that can interact with the user's data" />
+    <MESSAGE value="Renamed project, started working on documentation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Renamed project, started working on documentation" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
