@@ -26,9 +26,7 @@ Currently, the following services are supported:
 
 Future support for the following services is planned:
 
-- Netflix
-- Amazon Prime Video
-- Disney+
+- ThreeNow
 
 ## Installation
 
@@ -142,10 +140,10 @@ userData = api.get_user_info()
 watchlist = api.get_watchlist()
 
 # Add show to watchlist
-api.add_to_watch_list("189156")
+api.add_to_watchlist("189156")
 
 # Remove show from watchlist
-api.remove_from_watch_list("189156")
+api.remove_from_watchlist("189156")
 ```
 
 ## Why the Name Kryptonite?

@@ -315,8 +315,7 @@ class Tvnz:
 
         # Get video info, specifically as the video's brightcove id and account id
         video_info = self.get_video(video_id)
-        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove'][
-            'accountId']}/videos/{video_info['brightcove']['video_id']}"
+        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove']['accountId']}/videos/{video_info['brightcove']['video_id']}"
         playback_info = utils.get_json(playback_info_url, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
 
         # Get the decryption keys for the video
@@ -374,8 +373,7 @@ class Tvnz:
             str: The subtitles for the video with the given ID
         """
         video_info = self.get_video(video_id)
-        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove'][
-            'accountId']}/videos/{video_info['brightcove']['video_id']}"
+        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove']['accountId']}/videos/{video_info['brightcove']['video_id']}"
         playback_info = utils.get_json(playback_info_url, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
 
         # Get the subtitles url and download the subtitles
@@ -537,7 +535,7 @@ class Tvnz:
         return watch_list_shows
 
     @requires_login
-    def add_to_watch_list(self, show_id: str) -> str:
+    def add_to_watchlist(self, show_id: str) -> str:
         """
         Adds a show or movie to the logged-in user's watchlist
 
@@ -556,7 +554,7 @@ class Tvnz:
             return show_id
 
     @requires_login
-    def remove_from_watch_list(self, show_id: str) -> str:
+    def remove_from_watchlist(self, show_id: str) -> str:
         """
         Removes a show or movie from the logged-in user's watchlist
 
