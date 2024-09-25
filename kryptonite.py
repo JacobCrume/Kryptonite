@@ -5,6 +5,12 @@ import subprocess
 import os
 import shutil
 from utils.decorators import requires_login
+from requests.exceptions import RequestException
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class Tvnz:
@@ -26,191 +32,174 @@ class Tvnz:
 
     Methods
     -------
-    getShow(showId: str) -> dict
+    getShow(show_id: str) -> dict
         Gets the metadata for a show or movie with the given ID
-    getEpisodes(showId: str, seasonNumber: int = None) -> list
+    getEpisodes(show_id: str, season_number: int = None) -> list
         Gets the episodes for a show with the given ID
-    getSchedule(channelName: str=None, date: str=None) -> dict
+    getSchedule(channel_name: str=None, date: str=None) -> dict
         Gets the schedule for a given channel on a given date
-    getVideo(videoId: str) -> dict
+    getVideo(video_id: str) -> dict
         Gets the metadata for a video with the given ID
     search(query: str) -> list
         Searches the TVNZ API for shows and videos matching the given query
-    getCategory(categoryName: str) -> dict
+    getCategory(category_name: str) -> dict
         Gets the shows and movies in a category with the given name
     getAllShowIds() -> list
         Gets a list of all show and movie IDs
-    downloadVideo(videoId: str, output: str) -> int
+    downloadVideo(video_id: str, output: str) -> int
         Downloads a video with the given ID to the given output directory
-    getSubtitles(videoId: str) -> str
+    getSubtitles(video_id: str) -> str
         Gets the subtitles for a video with the given ID
     login() -> str
         Logs into the TVNZ API and returns the authorization token
     """
+
     def __init__(self, api_release="public", authorization=None):
         self.API_RELEASE = api_release
         self.BASE_URL = f"https://apis-{self.API_RELEASE}-prod.tech.tvnz.co.nz"
-        self.POLICY_KEY = "BCpkADawqM1N12WMDn4W-_kPR1HP17qWAzLwRMnN2S11amDldHxufQMiBfcXaYthGVkx1iJgFCAkbCAJ0R-z8S-gWFcZg7BcmerduckK-Lycyvgpe4prhFDj6jCMrXMq4F5lS5FVEymSDlpMK2-lK87-RK62ifeRgK7m_Q"
+        self.POLICY_KEY = ("BCpkADawqM1N12WMDn4W-_kPR1HP17qWAzLwRMnN2S11amDldHxufQMiBfcXaYthGVkx1iJgFCAkbCAJ0R-z8S"
+                           "-gWFcZg7BcmerduckK-Lycyvgpe4prhFDj6jCMrXMq4F5lS5FVEymSDlpMK2-lK87-RK62ifeRgK7m_Q")
         self.authorization = authorization
         self.activeProfile = None
         self.session = requests.Session()
 
-    def getShow(self, showId: str) -> dict:
+    def get_show(self, show_id: str) -> dict:
         """
         Gets the metadata for a show or movie with the given ID
 
         Parameters:
-            showId (str): The ID of the show or movie to get the metadata for
+            show_id (str): The ID of the show or movie to get the metadata for
 
         Returns:
             dict: The metadata for the show or movie with the given ID
         """
-        videoUrl = f"{self.BASE_URL}/api/v1/web/play/shows/{showId}"
-        showMetadata = utils.get_json(videoUrl)
+        video_url = f"{self.BASE_URL}/api/v1/web/play/shows/{show_id}"
+        try:
+            show_metadata = utils.get_json(video_url)
+        except RequestException as e:
+            logger.error(f"Failed to fetch show metadata: {e}")
+            return {}
 
-        showInfo = {
-            "title": showMetadata["title"],
-            "showId": showMetadata["showId"],
-            "description": showMetadata["synopsis"],
-            "url": showMetadata["page"]["url"],
-            "episodesAvailable": showMetadata["episodesAvailable"],
-            "seasonsAvailable": showMetadata["seasonsAvailable"],
-            "coverImage": {
-                "url": showMetadata["coverImage"]["src"],
-                "aspectRatio": showMetadata["coverImage"]["aspectRatio"]
-            },
-            "tileImage": {
-                "url": showMetadata["tileImage"]["src"],
-                "aspectRatio": showMetadata["tileImage"]["aspectRatio"]
-            },
-            "rating": showMetadata["rating"]["classification"],
-            "isFavorite": showMetadata["preferences"]["isFavorite"],
-            "showType": showMetadata["showType"],
-            "releaseYear": showMetadata["releaseYear"],
-            "categories": [{"name": cat["label"], "url": cat["href"]} for cat in showMetadata["categories"]],
-            "moods": [mood["label"] for mood in showMetadata["moods"]],
-            "portraitTileImage": {
-                'url': showMetadata['portraitTileImage']['src'],
-                'aspectRatio': showMetadata['portraitTileImage']['aspectRatio']
-            } if showMetadata["portraitTileImage"] else None
-        }
+        return utils.process_show(show_metadata)
 
-        return showInfo
-
-    def getEpisodes(self, showId: str, seasonNumber: int = None) -> list:
+    def get_episodes(self, show_id: str, season_number: int = None) -> list:
         """
         Gets the episodes for a show with the given ID
 
         Parameters:
-            showId (str): The ID of the show to get the episodes for
-            seasonNumber (int): The season number to get the episodes for, or None to get all episodes
+            show_id (str): The ID of the show to get the episodes for
+            season_number (int): The season number to get the episodes for, or None to get all episodes
 
         Returns:
             list: A list of episodes for the show with the given ID
         """
-        showUrl = f"{self.BASE_URL}/api/v1/web/play/shows/{showId}"
-        showMetadata = utils.get_json(showUrl)
+        show_url = f"{self.BASE_URL}/api/v1/web/play/shows/{show_id}"
+        show_metadata = utils.get_json(show_url)
 
         episodes = []
 
-        if showMetadata["showType"] == "Episodic":
+        if show_metadata["showType"] == "Episodic":
             # Get a list of seasons from TVNZ api
-            seasonList = utils.get_json(f"{self.BASE_URL}{showMetadata['page']['href']}/episodes")["layout"]["slots"]["main"]["modules"][0]["lists"]
+            season_list = \
+                utils.get_json(f"{self.BASE_URL}{show_metadata['page']['href']}/episodes")["layout"]["slots"]["main"][
+                    "modules"][0]["lists"]
 
             # Iterate through each season, adding its episodes to the last
-            for season in seasonList:
+            for season in season_list:
                 # Check if season number matches the one requested, or, if none was requested, get all the seasons
-                if seasonNumber is None or season["baseHref"].endswith(f"/{seasonNumber}"):
+                if season_number is None or season["baseHref"].endswith(f"/{season_number}"):
                     # Get the metadata for the season and add it to the episode list
-                    seasonData = utils.get_json(self.BASE_URL + season["baseHref"])
-                    episodes.append(utils.parseSeasonData(seasonData))
+                    season_data = utils.get_json(self.BASE_URL + season["baseHref"])
+                    episodes.append(utils.parseSeasonData(season_data))
                     # If a season number was requested, break the loop
-                    if seasonNumber:
+                    if season_number:
                         break
 
-        elif showMetadata["showType"] == "Movie":
-            videoInfo = self.getVideo(showMetadata["watchAction"]["videoHref"].split("/")[-1])
+        elif show_metadata["showType"] == "Movie":
+            video_info = self.get_video(show_metadata["watchAction"]["videoHref"].split("/")[-1])
             episodes.append({
-                "seasonNumber": "1",
-                "episodes": [videoInfo]
+                "season_number": "1",
+                "episodes": [video_info]
             })
 
         return episodes
 
-    def getSchedule(self, channelName: str=None, date: str=None) -> dict:
+    def get_schedule(self, channel_name: str = None, date: str = None) -> dict:
         """
         Gets the schedule for a given channel on a given date
 
-        Parameters:
-            channelName (str): The name of the channel to get the schedule for, or None to get the schedule for all channels
-            date (str): The date to get the schedule for in the format "YYYY-MM-DD"
+        Parameters: channel_name (str): The name of the channel to get the schedule for, or None to get the schedule
+        for all channels date (str): The date to get the schedule for in the format "YYYY-MM-DD"
 
         Returns:
             dict: The schedule for the given channel on the given date
         """
         schedule = {}
         # If a channel name is provided, get the schedule for that channel, otherwise get the schedule for all channels
-        channelUrls = [f"{self.BASE_URL}/api/v1/web/play/epg/channels/{channelName}/schedule?date={date}"] if channelName else [
-            self.BASE_URL + channel for channel in utils.get_json(f"{self.BASE_URL}/api/v1/web/play/epg/schedule?date={date}")["epgChannels"]
+        channel_urls = [
+            f"{self.BASE_URL}/api/v1/web/play/epg/channels/{channel_name}/schedule?date={date}"] if channel_name else [
+            self.BASE_URL + channel for channel in
+            utils.get_json(f"{self.BASE_URL}/api/v1/web/play/epg/schedule?date={date}")["epgChannels"]
         ]
 
-        for channel in channelUrls:
-            channelSchedule = utils.get_json(channel)
+        for channel in channel_urls:
+            channel_schedule = utils.get_json(channel)
             programs = [{
-                "title": channelSchedule["_embedded"][program]["title"],
-                "episodeTitle": channelSchedule["_embedded"][program]["episodeName"],
-                "episodeNumber": channelSchedule["_embedded"][program]["episodeNumber"],
-                "seasonNumber": channelSchedule["_embedded"][program]["seasonNumber"],
-                "description": channelSchedule["_embedded"][program]["synopsis"],
-                "duration": utils.convertDuration(channelSchedule["_embedded"][program]["duration"]),
-                "onTime": channelSchedule["_embedded"][program]["onTime"],
-                "offTime": channelSchedule["_embedded"][program]["offTime"],
-                "rating": channelSchedule["_embedded"][program]["certification"],
-                "showId": channelSchedule["_embedded"][program]["showHref"].split("/")[-1] if channelSchedule["_embedded"][program]["showHref"] else None
-            } for program in channelSchedule["programmes"]]
+                "title": channel_schedule["_embedded"][program]["title"],
+                "episodeTitle": channel_schedule["_embedded"][program]["episodeName"],
+                "episodeNumber": channel_schedule["_embedded"][program]["episodeNumber"],
+                "season_number": channel_schedule["_embedded"][program]["season_number"],
+                "description": channel_schedule["_embedded"][program]["synopsis"],
+                "duration": utils.convertDuration(channel_schedule["_embedded"][program]["duration"]),
+                "onTime": channel_schedule["_embedded"][program]["onTime"],
+                "offTime": channel_schedule["_embedded"][program]["offTime"],
+                "rating": channel_schedule["_embedded"][program]["certification"],
+                "show_id": channel_schedule["_embedded"][program]["showHref"].split("/")[-1] if
+                channel_schedule["_embedded"][program]["showHref"] else None
+            } for program in channel_schedule["programmes"]]
 
             schedule[channel.split("/")[7]] = programs
 
         return schedule
 
-    def getVideo(self, videoId: str) -> dict:
+    def get_video(self, video_id: str) -> dict:
         """
         Gets the metadata for a video with the given ID
 
         Parameters:
-            videoId (str): The ID of the video to get the metadata for
+            video_id (str): The ID of the video to get the metadata for
 
         Returns:
             dict: The metadata for the video with the given ID
         """
-        videoUrl = f"{self.BASE_URL}/api/v1/web/play/video/{videoId}"
-        videoMetadata = utils.get_json(videoUrl)
+        video_url = f"{self.BASE_URL}/api/v1/web/play/video/{video_id}"
+        video_metadata = utils.get_json(video_url)
 
-        videoInfo = {
-            "title": videoMetadata["title"],
-            "videoId": videoMetadata["videoId"],
-            "description": videoMetadata["synopsis"],
-            "url": videoMetadata["page"]["url"],
-            "duration": utils.convertDuration(videoMetadata["duration"]),
-            "rating": videoMetadata["certification"],
+        video_info = {
+            "title": video_metadata["title"],
+            "video_id": video_metadata["video_id"],
+            "description": video_metadata["synopsis"],
+            "url": video_metadata["page"]["url"],
+            "duration": utils.convertDuration(video_metadata["duration"]),
+            "rating": video_metadata["certification"],
             "coverImage": {
-                "url": videoMetadata["image"]["src"],
-                "aspectRatio": videoMetadata["image"]["aspectRatio"]
+                "url": video_metadata["image"]["src"],
+                "aspectRatio": video_metadata["image"]["aspectRatio"]
             },
-            "videoType": videoMetadata["videoType"],
-            "onTime": videoMetadata["onTime"],
-            "offTime": videoMetadata["offTime"],
-            "showId": videoMetadata["showHref"].split("/")[-1],
-            "seasonNumber": videoMetadata["seasonNumber"],
-            "episodeNumber": videoMetadata["episodeNumber"],
+            "videoType": video_metadata["videoType"],
+            "onTime": video_metadata["onTime"],
+            "offTime": video_metadata["offTime"],
+            "show_id": video_metadata["showHref"].split("/")[-1],
+            "season_number": video_metadata["season_number"],
+            "episodeNumber": video_metadata["episodeNumber"],
             "brightcove": {
-                "videoId": videoMetadata["publisherMetadata"]["brightcoveVideoId"],
-                "accountId": videoMetadata["publisherMetadata"]["brightcoveAccountId"],
-                "playerId": videoMetadata["publisherMetadata"]["brightcovePlayerId"]
+                "video_id": video_metadata["publisherMetadata"]["brightcoveVideoId"],
+                "accountId": video_metadata["publisherMetadata"]["brightcoveAccountId"],
+                "playerId": video_metadata["publisherMetadata"]["brightcovePlayerId"]
             }
         }
 
-        return videoInfo
+        return video_info
 
     def search(self, query: str) -> list:
         """
@@ -222,15 +211,15 @@ class Tvnz:
         Returns:
             list: A list of shows and movies matching the given query
         """
-        searchResults = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/search?q={query}")
+        search_results = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/search?q={query}&includeTypes=show")
         results = []
 
-        for result in searchResults["results"]:
+        for result in search_results["results"]:
             # Check if the result is a show or movie, as they have different metadata
             if result["type"] == "show":
                 show = {
                     "title": result["title"],
-                    "showId": result["showId"],
+                    "show_id": result["show_id"],
                     "description": result["synopsis"],
                     "url": result["page"]["url"],
                     "episodesAvailable": result["episodesAvailable"],
@@ -258,7 +247,7 @@ class Tvnz:
             elif result["type"] in ["sportVideo", "newsVideo"]:
                 video = {
                     "title": result["title"],
-                    "videoId": result["videoId"],
+                    "video_id": result["video_id"],
                     "description": result["description"],
                     "url": result["page"]["url"],
                     "coverImage": result["images"][0]["src"],
@@ -266,7 +255,7 @@ class Tvnz:
                     "offTime": result["offTime"],
                     "videoType": result["videoType"],
                     "brightcove": {
-                        "videoId": result["media"]["id"] if result["media"] else None,
+                        "video_id": result["media"]["id"] if result["media"] else None,
                         "accountId": result["media"]["accountId"] if result["media"] else None
                     },
                     "duration": utils.convertDuration(result["media"]["duration"]) if result["media"] else None
@@ -275,72 +264,47 @@ class Tvnz:
 
         return results
 
-    def getCategory(self, categoryName: str) -> dict:
+    def get_category(self, category_name: str) -> dict:
         """
         Gets the shows and movies in a category with the given name
 
         Parameters:
-            categoryName (str): The name of the category to get the shows and movies for
+            category_name (str): The name of the category to get the shows and movies for
 
         Returns:
             dict: The shows and movies in the category with the given name
         """
-        categoryPage = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/page/categories/{categoryName}")
-        categoryInfo = {
-            "title": categoryPage["title"],
-            "description": categoryPage["metadata"]["description"],
-            "url": categoryPage["url"],
+        category_page = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/page/categories/{category_name}")
+        category_info = {
+            "title": category_page["title"],
+            "description": category_page["metadata"]["description"],
+            "url": category_page["url"],
             "shows": []
         }
 
-        for show in categoryPage["layout"]["slots"]["main"]["modules"][0]["items"]:
-            showData = categoryPage["_embedded"][show["href"]]
-            showInfo = {
-                "title": showData["title"],
-                "showId": showData["showId"],
-                "description": showData["synopsis"],
-                "url": showData["page"]["url"],
-                "episodesAvailable": showData["episodesAvailable"],
-                "seasonsAvailable": showData["seasonsAvailable"],
-                "coverImage": {
-                    "url": showData["coverImage"]["src"],
-                    "aspectRatio": showData["coverImage"]["aspectRatio"]
-                },
-                "tileImage": {
-                    "url": showData["tileImage"]["src"],
-                    "aspectRatio": showData["tileImage"]["aspectRatio"]
-                },
-                "rating": showData["rating"]["classification"],
-                "isFavorite": showData["preferences"]["isFavorite"],
-                "showType": showData["showType"],
-                "releaseYear": showData["releaseYear"],
-                "categories": [{"name": cat["label"], "url": cat["href"]} for cat in showData["categories"]],
-                "moods": [mood["label"] for mood in showData["moods"]],
-                "portraitTileImage": {
-                    'url': showData['portraitTileImage']['src'],
-                    'aspectRatio': showData['portraitTileImage']['aspectRatio']
-                } if showData["portraitTileImage"] else None
-            }
-            categoryInfo["shows"].append(showInfo)
+        for show in category_page["layout"]["slots"]["main"]["modules"][0]["items"]:
+            show_data = category_page["_embedded"][show["href"]]
+            show_info = utils.process_show(show_data)
+            category_info["shows"].append(show_info)
 
-        return categoryInfo
+        return category_info
 
-    def getAllShowIds(self) -> list:
+    def get_all_show_ids(self) -> list:
         """
         Gets a list of all show and movie IDs
 
         Returns:
             list: A list of all show and movie IDs
         """
-        showList = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/shows")
-        return [show.split("/")[-1] for show in showList]
+        show_list = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/shows")
+        return [show.split("/")[-1] for show in show_list]
 
-    def downloadVideo(self, videoId: str, output: str) -> int:
+    def download_video(self, video_id: str, output: str) -> int:
         """
         Downloads a video with the given ID to the given output directory
 
         Parameters:
-            videoId (str): The ID of the video to download
+            video_id (str): The ID of the video to download
             output (str): The name and directory to save the video to (e.g. "D:/Downloads/video.mp4")
 
         Returns:
@@ -350,24 +314,25 @@ class Tvnz:
         # TODO: Implement a fully python-based solution for decrypting and combining the files
 
         # Get video info, specifically as the video's brightcove id and account id
-        videoInfo = self.getVideo(videoId)
-        playbackInfoUrl = f"https://playback.brightcovecdn.com/playback/v1/accounts/{videoInfo['brightcove']['accountId']}/videos/{videoInfo['brightcove']['videoId']}"
-        playbackInfo = utils.get_json(playbackInfoUrl, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
+        video_info = self.get_video(video_id)
+        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove'][
+            'accountId']}/videos/{video_info['brightcove']['video_id']}"
+        playback_info = utils.get_json(playback_info_url, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
 
         # Get the decryption keys for the video
-        licenseUrl = playbackInfo["sources"][2]["key_systems"]["com.widevine.alpha"]["license_url"]
-        mpdUrl = playbackInfo["sources"][2]["src"].replace("http://", "https://")
-        decryptionKeys = decrypter.getDecryptionKeys(mpdUrl, licenseUrl)
+        license_url = playback_info["sources"][2]["key_systems"]["com.widevine.alpha"]["license_url"]
+        mpd_url = playback_info["sources"][2]["src"].replace("http://", "https://")
+        decryption_keys = decrypter.getDecryptionKeys(mpd_url, license_url)
 
         # Download the video and audio files
-        videoOptions = {
+        video_options = {
             'allow_unplayable_formats': True,
             'outtmpl': 'video/video.%(ext)s',
             'quiet': True,
             'no_warnings': True
         }
-        videoDownloader = yt_dlp.YoutubeDL(videoOptions)
-        videoDownloader.download([mpdUrl])
+        video_downloader = yt_dlp.YoutubeDL(video_options)
+        video_downloader.download([mpd_url])
 
         # Rename the video files to remove the random text in the filename
         os.chdir("video")
@@ -375,8 +340,8 @@ class Tvnz:
             os.rename(file, "video." + file.split(".")[-1])
 
         # Decrypt the video and audio files
-        subprocess.run(['mp4decrypt', '--key', decryptionKeys, 'video.m4a', 'audioDec.m4a'], check=True)
-        subprocess.run(['mp4decrypt', '--key', decryptionKeys, 'video.mp4', 'videoDec.mp4'], check=True)
+        subprocess.run(['mp4decrypt', '--key', decryption_keys, 'video.m4a', 'audioDec.m4a'], check=True)
+        subprocess.run(['mp4decrypt', '--key', decryption_keys, 'video.mp4', 'videoDec.mp4'], check=True)
         os.chdir("..")
 
         # Combine the video and audio files
@@ -398,23 +363,24 @@ class Tvnz:
         else:
             return 1
 
-    def getSubtitles(self, videoId: str) -> str:
+    def get_subtitles(self, video_id: str) -> str:
         """
         Gets the subtitles for a video with the given ID
 
         Parameters:
-            videoId (str): The ID of the video to get the subtitles for
+            video_id (str): The ID of the video to get the subtitles for
 
         Returns:
             str: The subtitles for the video with the given ID
         """
-        videoInfo = self.getVideo(videoId)
-        playbackInfoUrl = f"https://playback.brightcovecdn.com/playback/v1/accounts/{videoInfo['brightcove']['accountId']}/videos/{videoInfo['brightcove']['videoId']}"
-        playbackInfo = utils.get_json(playbackInfoUrl, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
+        video_info = self.get_video(video_id)
+        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove'][
+            'accountId']}/videos/{video_info['brightcove']['video_id']}"
+        playback_info = utils.get_json(playback_info_url, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
 
         # Get the subtitles url and download the subtitles
-        subtitlesUrl = playbackInfo["text_tracks"][0]["sources"][1]["src"]
-        return self.session.get(subtitlesUrl).text
+        subtitles_url = playback_info["text_tracks"][0]["sources"][1]["src"]
+        return self.session.get(subtitles_url).text
 
     def login(self, email: str, password: str) -> str:
         """
@@ -459,20 +425,21 @@ class Tvnz:
         return self.authorization
 
     @requires_login
-    def getUserInfo(self) -> list:
+    def get_user_info(self) -> list:
         """
         Gets the profile information for the logged-in user
 
         Returns:
             dict: The profile information for the logged-in user
         """
-        profileData = utils.get_json(f"{self.BASE_URL}/api/v1/web/consumer/account", headers={"Authorization": f"Bearer {self.authorization}"})
+        profile_data = utils.get_json(f"{self.BASE_URL}/api/v1/web/consumer/account",
+                                      headers={"Authorization": f"Bearer {self.authorization}"})
 
         profiles = []
 
-        for profile in profileData["profiles"]:
+        for profile in profile_data["profiles"]:
             profiles.append({
-                "profileId": profile["id"],
+                "profile_id": profile["id"],
                 "accountId": profile["accountId"],
                 "firstName": profile["firstName"],
                 "lastName": profile["lastName"],
@@ -492,18 +459,19 @@ class Tvnz:
         return profiles
 
     @requires_login
-    def getProfileIcons(self) -> list:
+    def get_profile_icons(self) -> list:
         """
         Gets the profile icons available
 
         Returns:
             list: The profile icons available for use
         """
-        profileData = utils.get_json(f"{self.BASE_URL}/api/v1/web/consumer/profile-icons", headers={"Authorization": f"Bearer {self.authorization}"})
+        profile_data = utils.get_json(f"{self.BASE_URL}/api/v1/web/consumer/profile-icons",
+                                      headers={"Authorization": f"Bearer {self.authorization}"})
 
         icons = []
 
-        for icon in profileData["icons"]:
+        for icon in profile_data["icons"]:
             icons.append({
                 "url": icon["iconImage"]["src"],
                 "aspectRatio": icon["iconImage"]["aspectRatio"]
@@ -512,18 +480,18 @@ class Tvnz:
         return icons
 
     @requires_login
-    def setActiveProfile(self, profileId: str) -> str:
+    def set_active_profile(self, profile_id: str) -> str:
         """
         Sets the active profile for the logged-in user
 
         Returns:
             str: The active profile ID
         """
-        self.activeProfile = profileId
+        self.activeProfile = profile_id
         return self.activeProfile
 
     @requires_login
-    def getWatchedVideos(self) -> list:
+    def get_watched_videos(self) -> list:
         """
         Gets the videos the logged-in user has watched and the duration watched
 
@@ -531,112 +499,87 @@ class Tvnz:
             list: The videos the logged-in user has watched and the duration watched
         """
 
-        watchedData = utils.get_json(f"https://apis-public-prod.tvnz.io/user/v1/play-state", headers={
+        watched_data = utils.get_json(f"https://apis-public-prod.tvnz.io/user/v1/play-state", headers={
             "Authorization": f"Bearer {self.authorization}",
             "x-tvnz-active-profile-id": self.activeProfile
         })
 
-        watchedVideos = []
+        watched_videos = []
 
-        for video in watchedData["videos"]:
-            watchedVideos.append({
-                "videoId": video["videoId"],
+        for video in watched_data["videos"]:
+            watched_videos.append({
+                "video_id": video["video_id"],
                 "durationWatched": utils.convertDuration(video["duration"])
             })
 
-        return watchedVideos
+        return watched_videos
 
     @requires_login
-    def getWatchList(self) -> list:
+    def get_watchlist(self) -> list:
         """
         Gets the videos the logged-in user has added to their watchlist
 
         Returns:
             list: The videos the logged-in user has added to their watchlist
         """
-        watchListData = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/page/categories/my-list", headers={
+        watch_list_data = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/page/categories/my-list", headers={
             "Authorization": f"Bearer {self.authorization}",
             "x-tvnz-active-profile-id": self.activeProfile
         })
 
-        watchListShows = []
+        watch_list_shows = []
 
-        for show in watchListData["layout"]["slots"]["main"]["modules"][0]["items"]:
-            showData = watchListData["_embedded"][show["href"]]
-            showInfo = {
-                "title": showData["title"],
-                "showId": showData["showId"],
-                "description": showData["synopsis"],
-                "url": showData["page"]["url"],
-                "episodesAvailable": showData["episodesAvailable"],
-                "seasonsAvailable": showData["seasonsAvailable"],
-                "coverImage": {
-                    "url": showData["coverImage"]["src"],
-                    "aspectRatio": showData["coverImage"]["aspectRatio"]
-                },
-                "tileImage": {
-                    "url": showData["tileImage"]["src"],
-                    "aspectRatio": showData["tileImage"]["aspectRatio"]
-                },
-                "rating": showData["rating"]["classification"],
-                "isFavorite": showData["preferences"]["isFavorite"],
-                "showType": showData["showType"],
-                "releaseYear": showData["releaseYear"],
-                "categories": [{"name": cat["label"], "url": cat["href"]} for cat in showData["categories"]],
-                "moods": [mood["label"] for mood in showData["moods"]],
-                "portraitTileImage": {
-                    'url': showData['portraitTileImage']['src'],
-                    'aspectRatio': showData['portraitTileImage']['aspectRatio']
-                } if showData["portraitTileImage"] else None
-            }
-            watchListShows.append(showInfo)
+        for show in watch_list_data["layout"]["slots"]["main"]["modules"][0]["items"]:
+            show_data = watch_list_data["_embedded"][show["href"]]
+            show_info = utils.process_show(show_data)
+            watch_list_shows.append(show_info)
 
-        return watchListShows
+        return watch_list_shows
 
     @requires_login
-    def addToWatchList(self, showId: str) -> str:
+    def add_to_watch_list(self, show_id: str) -> str:
         """
         Adds a show or movie to the logged-in user's watchlist
 
         Parameters:
-            showId (str): The ID of the show or movie to add to the watchlist
+            show_id (str): The ID of the show or movie to add to the watchlist
 
         Returns:
             str: The ID of the show or movie added to the watchlist
         """
-        response = self.session.post(f"{self.BASE_URL}/api/v1/web/play/shows/{showId}/preferences", headers={
+        response = self.session.post(f"{self.BASE_URL}/api/v1/web/play/shows/{show_id}/preferences", headers={
             "Authorization": f"Bearer {self.authorization}",
             "x-tvnz-active-profile-id": self.activeProfile
         }, json={"isFavorite": True})
 
         if response.status_code == 200:
-            return showId
+            return show_id
 
     @requires_login
-    def removeFromWatchList(self, showId: str) -> str:
+    def remove_from_watch_list(self, show_id: str) -> str:
         """
         Removes a show or movie from the logged-in user's watchlist
 
         Parameters:
-            showId (str): The ID of the show or movie to remove from the watchlist
+            show_id (str): The ID of the show or movie to remove from the watchlist
 
         Returns:
             str: The ID of the show or movie removed from the watchlist
         """
-        response = self.session.post(f"{self.BASE_URL}/api/v1/web/play/shows/{showId}/preferences", headers={
+        response = self.session.post(f"{self.BASE_URL}/api/v1/web/play/shows/{show_id}/preferences", headers={
             "Authorization": f"Bearer {self.authorization}",
             "x-tvnz-active-profile-id": self.activeProfile
         }, json={"isFavorite": False})
 
         if response.status_code == 200:
-            return showId
+            return show_id
 
 
 def main():
     api = Tvnz()
     api.login(input("Email: "), input("Password: "))
-    api.setActiveProfile(api.getUserInfo()[0]["profileId"])
-    print(api.removeFromWatchList("190870"))
+    api.set_active_profile(api.get_user_info()[0]["profile_id"])
+    print(api.get_watchlist())
 
 
 if __name__ == "__main__":

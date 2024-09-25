@@ -3,6 +3,33 @@ import shutil
 import secrets
 import string
 
+def process_show(show_metadata):
+    return {
+        "title": show_metadata["title"],
+        "showId": show_metadata["showId"],
+        "description": show_metadata["synopsis"],
+        "url": show_metadata["page"]["url"],
+        "episodesAvailable": show_metadata["episodesAvailable"],
+        "seasonsAvailable": show_metadata["seasonsAvailable"],
+        "coverImage": {
+            "url": show_metadata["coverImage"]["src"],
+            "aspectRatio": show_metadata["coverImage"]["aspectRatio"]
+        },
+        "tileImage": {
+            "url": show_metadata["tileImage"]["src"],
+            "aspectRatio": show_metadata["tileImage"]["aspectRatio"]
+        },
+        "rating": show_metadata["rating"]["classification"],
+        "isFavorite": show_metadata["preferences"]["isFavorite"],
+        "showType": show_metadata["showType"],
+        "releaseYear": show_metadata["releaseYear"],
+        "categories": [{"name": cat["label"], "url": cat["href"]} for cat in show_metadata["categories"]],
+        "moods": [mood["label"] for mood in show_metadata["moods"]],
+        "portraitTileImage": {
+            'url': show_metadata['portraitTileImage']['src'],
+            'aspectRatio': show_metadata['portraitTileImage']['aspectRatio']
+        } if show_metadata["portraitTileImage"] else None
+    }
 def get_json(url: str, headers=None) -> dict:
     try:
         response = requests.get(url, headers=headers)
@@ -47,14 +74,14 @@ def convertDuration(isoDuration):
 
 def parseSeasonData(seasonData):
     seasonEpisodes = {
-        "seasonNumber": seasonData["id"].split("/")[-1],
+        "season_number": seasonData["id"].split("/")[-1],
         "episodes": []
     }
     for episode in seasonData["content"]:
         seasonEpisodes["episodes"].append({
             "title": seasonData["_embedded"][episode["href"]]["title"],
             "episodeNumber": seasonData["_embedded"][episode["href"]]["episodeNumber"],
-            "videoId": seasonData["_embedded"][episode["href"]]["videoId"],
+            "video_id": seasonData["_embedded"][episode["href"]]["video_id"],
             "description": seasonData["_embedded"][episode["href"]]["synopsis"],
             "url": seasonData["_embedded"][episode["href"]]["page"]["url"],
             "coverImage": {
@@ -66,12 +93,12 @@ def parseSeasonData(seasonData):
             "duration": convertDuration(seasonData["_embedded"][episode["href"]]["duration"]),
             "rating": seasonData["_embedded"][episode["href"]]["certification"],
             "brightcove": {
-                "videoId": seasonData["_embedded"][episode["href"]]["publisherMetadata"]["brightcoveVideoId"],
+                "video_id": seasonData["_embedded"][episode["href"]]["publisherMetadata"]["brightcoveVideoId"],
                 "accountId": seasonData["_embedded"][episode["href"]]["publisherMetadata"]["brightcoveAccountId"],
                 "playerId": seasonData["_embedded"][episode["href"]]["publisherMetadata"]["brightcovePlayerId"]
             }
         })
 
-    if seasonEpisodes["seasonNumber"][:3] == "jcr":
-        seasonEpisodes["seasonNumber"] = None
+    if seasonEpisodes["season_number"][:3] == "jcr":
+        seasonEpisodes["season_number"] = None
     return seasonEpisodes

@@ -1,4 +1,6 @@
-<p align="center"><img src="docs%2Fimages%2Ficon.png" alt="drawing" width="120" align="center"/></p>
+<p align="center">
+    <img src="docs/images/icon.png" alt="drawing" width="120" align="center"/>
+</p>
 
 <h1 align="center">
 Kryptonite
@@ -85,15 +87,15 @@ searchResults = api.search("Shortland Street")
 print(searchResults)
 
 # Get metadata for show or movie
-metadata = api.getShow(searchResults[0]["showId"])
+metadata = api.get_show(searchResults[0]["show_id"])
 print(metadata)
 
 # Get episodes for show or video ID for movie
-episodeList = api.getEpisodes(searchResults[0]["showId"])
+episodeList = api.get_episodes(searchResults[0]["show_id"])
 print(episodeList)
 
 # Get video metadata
-videoMetadata = api.getVideo(episodeList[0]["episodes"][0]["videoId"])
+videoMetadata = api.get_video(episodeList[0]["episodes"][0]["video_id"])
 print(videoMetadata)
 ```
 
@@ -106,7 +108,7 @@ import kryptonite
 api = kryptonite.Tvnz()
 
 # Download video with ID "2687673" and save it to "D:/video.mp4"
-api.downloadVideo("2687673", "D:/video.mp4")
+api.download_video("2687673", "D:/video.mp4")
 ```
 
 ### Downloading Subtitles
@@ -118,7 +120,7 @@ import kryptonite
 api = kryptonite.Tvnz()
 
 # Download subtitles for video with ID "2687673"
-subtitles = api.getSubtitles("2687673")
+subtitles = api.get_subtitles("2687673")
 print(subtitles)
 ```
 
@@ -134,16 +136,16 @@ api = kryptonite.Tvnz()
 api.login("bob@example.com", "password1234")
 
 # Get user data
-userData = api.getUserInfo()
+userData = api.get_user_info()
 
 # Get watchlist
-watchlist = api.getWatchList()
+watchlist = api.get_watchlist()
 
 # Add show to watchlist
-api.addToWatchList("189156")
+api.add_to_watch_list("189156")
 
 # Remove show from watchlist
-api.removeFromWatchList("189156")
+api.remove_from_watch_list("189156")
 ```
 
 ## Why the Name Kryptonite?
