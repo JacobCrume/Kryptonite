@@ -30,9 +30,13 @@ Future support for the following services is planned:
 
 ## Installation
 
-Coming soon...
+1. Clone the repository:
 
-### Requirements
+```bash
+git clone https://github.com/jacobCrume/Kryptonite
+```
+
+2. Install the required packages:
 
 ```requirements
 google~=3.0.0
@@ -45,10 +49,12 @@ yt-dlp~=2024.8.6
 
 - Python 3.10 or higher
 - Valid non-blacklisted CDM module (Widevine L3)
-- `ffmpeg` (for manipulating media files)
-- `bento4` (for decrypting Widevine DRM protected content)
+- [ffmpeg](https://www.ffmpeg.org/download.html) (for manipulating media files)
+- [bento4](https://www.bento4.com/downloads/) (for decrypting Widevine DRM protected content)
 
 In particular, ffmpeg and bento4 must be in your system's PATH. You can test this by running `ffmpeg` and `mp4decrypt` in your terminal.
+
+3. Install your CDM module (instructions below)
 
 ### Obtaining L3 CDM
 
@@ -66,7 +72,83 @@ android_generic/
 
 ## Usage
 
-Coming soon...
+### Getting Metadata
+
+```python
+import kryptonite
+
+# Create a TVNZ object
+api = kryptonite.Tvnz()
+
+# Search for shows and movies
+searchResults = api.search("Shortland Street")
+print(searchResults)
+
+# Get metadata for show or movie
+metadata = api.getShow(searchResults[0]["showId"])
+print(metadata)
+
+# Get episodes for show or video ID for movie
+episodeList = api.getEpisodes(searchResults[0]["showId"])
+print(episodeList)
+
+# Get video metadata
+videoMetadata = api.getVideo(episodeList[0]["episodes"][0]["videoId"])
+print(videoMetadata)
+```
+
+### Downloading Media
+
+```python
+import kryptonite
+
+# Create a TVNZ object
+api = kryptonite.Tvnz()
+
+# Download video with ID "2687673" and save it to "D:/video.mp4"
+api.downloadVideo("2687673", "D:/video.mp4")
+```
+
+### Downloading Subtitles
+
+```python
+import kryptonite
+
+# Create a TVNZ object
+api = kryptonite.Tvnz()
+
+# Download subtitles for video with ID "2687673"
+subtitles = api.getSubtitles("2687673")
+print(subtitles)
+```
+
+### Logging In and Getting User Information
+
+```python
+import kryptonite
+
+# Create a TVNZ object
+api = kryptonite.Tvnz()
+
+# Log in with email and password
+api.login("bob@example.com", "password1234")
+
+# Get user data
+userData = api.getUserInfo()
+
+# Get watchlist
+watchlist = api.getWatchList()
+
+# Add show to watchlist
+api.addToWatchList("189156")
+
+# Remove show from watchlist
+api.removeFromWatchList("189156")
+```
+
+## Why the Name Kryptonite?
+
+Kryptonite is a reference to the way that this project downloads and decrypts Widevine DRM protected content. In the Superman comics, Kryptonite is a mineral from Superman's home planet of Krypton that has the ability to weaken him. In the context of this project, Kryptonite is a tool that can weaken the DRM protection on media files, allowing them to be downloaded and played back without restrictions.
 
 ## Credits
 
