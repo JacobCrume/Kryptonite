@@ -27,6 +27,8 @@ Currently, the following services are supported:
 Future support for the following services is planned:
 
 - ThreeNow
+- Apple TV+
+- NEON
 
 ## Installation
 

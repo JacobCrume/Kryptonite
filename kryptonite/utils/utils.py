@@ -81,7 +81,7 @@ def parseSeasonData(seasonData):
         seasonEpisodes["episodes"].append({
             "title": seasonData["_embedded"][episode["href"]]["title"],
             "episodeNumber": seasonData["_embedded"][episode["href"]]["episodeNumber"],
-            "video_id": seasonData["_embedded"][episode["href"]]["video_id"],
+            "videoId": seasonData["_embedded"][episode["href"]]["videoId"],
             "description": seasonData["_embedded"][episode["href"]]["synopsis"],
             "url": seasonData["_embedded"][episode["href"]]["page"]["url"],
             "coverImage": {

@@ -75,11 +75,12 @@ class Tvnz:
         """
         video_url = f"{self.BASE_URL}/api/v1/web/play/shows/{show_id}"
         try:
+            logger.info(f"Fetching show metadata for show {show_id}")
             show_metadata = utils.get_json(video_url)
         except RequestException as e:
             logger.error(f"Failed to fetch show metadata: {e}")
             return {}
-
+        logger.info(f"Show metadata received for show {show_id}")
         return utils.process_show(show_metadata)
 
     def get_episodes(self, show_id: str, season_number: int = None) -> list:
@@ -94,10 +95,13 @@ class Tvnz:
             list: A list of episodes for the show with the given ID
         """
         show_url = f"{self.BASE_URL}/api/v1/web/play/shows/{show_id}"
+        logger.info(f"Fetching show metadata for show {show_id}")
         show_metadata = utils.get_json(show_url)
+        logger.info(f"Show metadata received for show {show_id}")
 
         episodes = []
 
+        logger.info(f"Extracting episodes for show {show_id}")
         if show_metadata["showType"] == "Episodic":
             # Get a list of seasons from TVNZ api
             season_list = \
@@ -122,6 +126,7 @@ class Tvnz:
                 "episodes": [video_info]
             })
 
+        logger.info(f"Episodes extracted for show {show_id}")
         return episodes
 
     def get_schedule(self, channel_name: str = None, date: str = None) -> dict:
@@ -136,12 +141,15 @@ class Tvnz:
         """
         schedule = {}
         # If a channel name is provided, get the schedule for that channel, otherwise get the schedule for all channels
+        logger.info(f"Fetching schedule for channel {channel_name} on date {date}")
         channel_urls = [
             f"{self.BASE_URL}/api/v1/web/play/epg/channels/{channel_name}/schedule?date={date}"] if channel_name else [
             self.BASE_URL + channel for channel in
             utils.get_json(f"{self.BASE_URL}/api/v1/web/play/epg/schedule?date={date}")["epgChannels"]
         ]
+        logger.info(f"Schedule received for channel {channel_name} on date {date}")
 
+        logger.info(f"Extracting schedule for channel {channel_name} on date {date}")
         for channel in channel_urls:
             channel_schedule = utils.get_json(channel)
             programs = [{
@@ -159,6 +167,7 @@ class Tvnz:
             } for program in channel_schedule["programmes"]]
 
             schedule[channel.split("/")[7]] = programs
+        logger.info(f"Schedule extracted for channel {channel_name} on date {date}")
 
         return schedule
 
@@ -173,8 +182,11 @@ class Tvnz:
             dict: The metadata for the video with the given ID
         """
         video_url = f"{self.BASE_URL}/api/v1/web/play/video/{video_id}"
+        logger.info(f"Fetching video metadata for video {video_id}")
         video_metadata = utils.get_json(video_url)
+        logger.info(f"Video metadata received for video {video_id}")
 
+        logger.info(f"Extracting video info for video {video_id}")
         video_info = {
             "title": video_metadata["title"],
             "videoId": video_metadata["videoId"],
@@ -198,6 +210,7 @@ class Tvnz:
                 "playerId": video_metadata["publisherMetadata"]["brightcovePlayerId"]
             }
         }
+        logger.info(f"Video info extracted for video {video_id}")
 
         return video_info
 
@@ -211,9 +224,12 @@ class Tvnz:
         Returns:
             list: A list of shows and movies matching the given query
         """
+        logger.info(f"Searching for query {query}")
         search_results = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/search?q={query}&includeTypes=show")
+        logger.info(f"Search results received for query {query}")
         results = []
 
+        logger.info(f"Extracting search results for query {query}")
         for result in search_results["results"]:
             # Check if the result is a show or movie, as they have different metadata
             if result["type"] == "show":
@@ -261,6 +277,7 @@ class Tvnz:
                     "duration": utils.convertDuration(result["media"]["duration"]) if result["media"] else None
                 }
                 results.append(video)
+        logger.info(f"Search results extracted for query {query}")
 
         return results
 
@@ -274,6 +291,7 @@ class Tvnz:
         Returns:
             dict: The shows and movies in the category with the given name
         """
+        logger.info(f"Fetching category page for category {category_name}")
         category_page = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/page/categories/{category_name}")
         category_info = {
             "title": category_page["title"],
@@ -281,11 +299,14 @@ class Tvnz:
             "url": category_page["url"],
             "shows": []
         }
+        logger.info(f"Category page received for category {category_name}")
 
+        logger.info(f"Extracting shows for category {category_name}")
         for show in category_page["layout"]["slots"]["main"]["modules"][0]["items"]:
             show_data = category_page["_embedded"][show["href"]]
             show_info = utils.process_show(show_data)
             category_info["shows"].append(show_info)
+        logger.info(f"Shows extracted for category {category_name}")
 
         return category_info
 
@@ -296,7 +317,9 @@ class Tvnz:
         Returns:
             list: A list of all show and movie IDs
         """
+        logger.info("Fetching all show IDs")
         show_list = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/shows")
+        logger.info("Show IDs received")
         return [show.split("/")[-1] for show in show_list]
 
     def download_video(self, video_id: str, output: str) -> int:
@@ -315,14 +338,17 @@ class Tvnz:
 
         # Get video info, specifically as the video's brightcove id and account id
         video_info = self.get_video(video_id)
-        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove'][
-            'accountId']}/videos/{video_info['brightcove']['videoId']}"
+        logger.info(f"Getting playback information for video {video_id}")
+        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove']['accountId']}/videos/{video_info['brightcove']['videoId']}"
         playback_info = utils.get_json(playback_info_url, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
+        logger.info(f"Playback information received for video {video_id}")
 
         # Get the decryption keys for the video
         license_url = playback_info["sources"][2]["key_systems"]["com.widevine.alpha"]["license_url"]
         mpd_url = playback_info["sources"][2]["src"].replace("http://", "https://")
+        logger.info(f"Getting decryption keys for video {video_id}")
         decryption_keys = decrypter.getDecryptionKeys(mpd_url, license_url)
+        logger.info(f"Decryption keys received for video {video_id}")
 
         # Download the video and audio files
         video_options = {
@@ -332,30 +358,42 @@ class Tvnz:
             'no_warnings': True
         }
         video_downloader = yt_dlp.YoutubeDL(video_options)
+        logger.info(f"Downloading video {video_id}")
         video_downloader.download([mpd_url])
+        logger.info(f"Video {video_id} downloaded")
 
         # Rename the video files to remove the random text in the filename
+        logger.info(f"Renaming video files")
         os.chdir("video")
         for file in os.listdir():
             os.rename(file, "video." + file.split(".")[-1])
+        logger.info(f"Video files renamed")
 
         # Decrypt the video and audio files
+        logger.info(f"Decrypting video and audio files")
         subprocess.run(['mp4decrypt', '--key', decryption_keys, 'video.m4a', 'audioDec.m4a'], check=True)
         subprocess.run(['mp4decrypt', '--key', decryption_keys, 'video.mp4', 'videoDec.mp4'], check=True)
-        os.chdir("../..")
+        os.chdir("../")
+        logger.info(f"Video and audio files decrypted")
 
         # Combine the video and audio files
+        logger.info(f"Combining video and audio files")
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', 'video/videoDec.mp4', '-i',
-                        'video/audioDec.m4a', '-c', 'copy', 'video/final.mp4'], check=True)
+                        'video/audioDec.m4a', '-c', 'copy', 'video/final.mp4'], check=True, shell=True)
+        logger.info(f"Video and audio files combined")
 
         # Clean up the files
+        logger.info(f"Cleaning up files")
         os.remove("video/video.m4a")
         os.remove("video/video.mp4")
         os.remove("video/videoDec.mp4")
         os.remove("video/audioDec.m4a")
+        logger.info(f"Files cleaned up")
 
         # Move the final video to the output directory
+        logger.info(f"Moving final video to output directory")
         shutil.move("video/final.mp4", output)
+        logger.info(f"Final video moved to output directory")
 
         # Check if the file was downloaded successfully
         if os.path.exists(output):
@@ -374,12 +412,15 @@ class Tvnz:
             str: The subtitles for the video with the given ID
         """
         video_info = self.get_video(video_id)
-        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove'][
-            'accountId']}/videos/{video_info['brightcove']['videoId']}"
+        logger.info(f"Getting playback information for video {video_id}")
+        playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove']['accountId']}/videos/{video_info['brightcove']['videoId']}"
         playback_info = utils.get_json(playback_info_url, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
+        logger.info(f"Playback information received for video {video_id}")
 
         # Get the subtitles url and download the subtitles
+        logger.info(f"Downloading subtitles for video {video_id}")
         subtitles_url = playback_info["text_tracks"][0]["sources"][1]["src"]
+        logger.info(f"Subtitles downloaded for video {video_id}")
         return self.session.get(subtitles_url).text
 
     def login(self, email: str, password: str) -> str:
@@ -394,6 +435,7 @@ class Tvnz:
             str: The authorization token for the TVNZ API
         """
         # Authentication request
+        logger.info("Attempting to get login ticket")
         auth = self.session.post("https://login.tvnz.co.nz/co/authenticate", headers={
             "Origin": "https://login.tech.tvnz.co.nz",
             "Referer": "https://login.tech.tvnz.co.nz"
@@ -403,10 +445,12 @@ class Tvnz:
             "password": password,
             "username": email,
         })
+        logger.info("Login ticket received")
 
         authentication = auth.json()
 
         # Access token request
+        logger.info("Attempting to get access token")
         access_token = self.session.get("https://login.tvnz.co.nz/authorize", params={
             "client_id": "LnDAd4mARcCg8VnOhNmr22el46J91FmS",
             "response_type": "token id_token",
@@ -419,6 +463,7 @@ class Tvnz:
             "scope": "openid profile email",
             "auth0Client": "eyJuYW1lIjoiYXV0aDAuanMiLCJ2ZXJzaW9uIjoiOS4xMS4zIn0="
         }, cookies=auth.cookies, allow_redirects=True)
+        logger.info("Access token received")
 
         self.authorization = access_token.url.split("access_token=")[1].split("&")[0]
 
@@ -432,11 +477,14 @@ class Tvnz:
         Returns:
             dict: The profile information for the logged-in user
         """
+        logger.info("Fetching user info")
         profile_data = utils.get_json(f"{self.BASE_URL}/api/v1/web/consumer/account",
                                       headers={"Authorization": f"Bearer {self.authorization}"})
+        logger.info("User info received")
 
         profiles = []
 
+        logger.info("Extracting profiles")
         for profile in profile_data["profiles"]:
             profiles.append({
                 "profile_id": profile["id"],
@@ -455,6 +503,7 @@ class Tvnz:
                 "accountOwner": profile["accountOwner"],
                 "email": profile["email"],
             })
+        logger.info("Profiles extracted")
 
         return profiles
 
@@ -466,16 +515,20 @@ class Tvnz:
         Returns:
             list: The profile icons available for use
         """
+        logger.info("Fetching profile icons")
         profile_data = utils.get_json(f"{self.BASE_URL}/api/v1/web/consumer/profile-icons",
                                       headers={"Authorization": f"Bearer {self.authorization}"})
+        logger.info("Profile icons received")
 
         icons = []
 
+        logger.info("Extracting profile icons")
         for icon in profile_data["icons"]:
             icons.append({
                 "url": icon["iconImage"]["src"],
                 "aspectRatio": icon["iconImage"]["aspectRatio"]
             })
+        logger.info("Profile icons extracted")
 
         return icons
 
@@ -488,6 +541,7 @@ class Tvnz:
             str: The active profile ID
         """
         self.activeProfile = profile_id
+        logger.info(f"Active profile set to {profile_id}")
         return self.activeProfile
 
     @requires_login
@@ -499,18 +553,22 @@ class Tvnz:
             list: The videos the logged-in user has watched and the duration watched
         """
 
+        logger.info("Fetching watched videos")
         watched_data = utils.get_json(f"https://apis-public-prod.tvnz.io/user/v1/play-state", headers={
             "Authorization": f"Bearer {self.authorization}",
             "x-tvnz-active-profile-id": self.activeProfile
         })
+        logger.info("Watched videos received")
 
         watched_videos = []
 
+        logger.info("Extracting watched videos")
         for video in watched_data["videos"]:
             watched_videos.append({
                 "videoId": video["videoId"],
                 "durationWatched": utils.convertDuration(video["duration"])
             })
+        logger.info("Watched videos extracted")
 
         return watched_videos
 
@@ -522,17 +580,21 @@ class Tvnz:
         Returns:
             list: The videos the logged-in user has added to their watchlist
         """
+        logger.info("Fetching watchlist")
         watch_list_data = utils.get_json(f"{self.BASE_URL}/api/v1/web/play/page/categories/my-list", headers={
             "Authorization": f"Bearer {self.authorization}",
             "x-tvnz-active-profile-id": self.activeProfile
         })
+        logger.info("Watchlist received")
 
         watch_list_shows = []
 
+        logger.info("Extracting watchlist shows")
         for show in watch_list_data["layout"]["slots"]["main"]["modules"][0]["items"]:
             show_data = watch_list_data["_embedded"][show["href"]]
             show_info = utils.process_show(show_data)
             watch_list_shows.append(show_info)
+        logger.info("Watchlist shows extracted")
 
         return watch_list_shows
 
@@ -547,13 +609,18 @@ class Tvnz:
         Returns:
             str: The ID of the show or movie added to the watchlist
         """
+        logger.info(f"Adding show {show_id} to watchlist")
         response = self.session.post(f"{self.BASE_URL}/api/v1/web/play/shows/{show_id}/preferences", headers={
             "Authorization": f"Bearer {self.authorization}",
             "x-tvnz-active-profile-id": self.activeProfile
         }, json={"isFavorite": True})
 
         if response.status_code == 200:
+            logger.info(f"Show {show_id} added to watchlist")
             return show_id
+        else:
+            logger.error(f"Failed to add show {show_id} to watchlist")
+            return ""
 
     @requires_login
     def remove_from_watch_list(self, show_id: str) -> str:
@@ -566,10 +633,15 @@ class Tvnz:
         Returns:
             str: The ID of the show or movie removed from the watchlist
         """
+        logger.info(f"Removing show {show_id} from watchlist")
         response = self.session.post(f"{self.BASE_URL}/api/v1/web/play/shows/{show_id}/preferences", headers={
             "Authorization": f"Bearer {self.authorization}",
             "x-tvnz-active-profile-id": self.activeProfile
         }, json={"isFavorite": False})
 
         if response.status_code == 200:
+            logger.info(f"Show {show_id} removed from watchlist")
             return show_id
+        else:
+            logger.error(f"Failed to remove show {show_id} from watchlist")
+            return ""
