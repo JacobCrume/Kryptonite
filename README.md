@@ -77,7 +77,8 @@ android_generic/
 ### Getting Metadata
 
 ```python
-import kryptonite
+
+from kryptonite import kryptonite
 
 # Create a TVNZ object
 api = kryptonite.Tvnz()
@@ -102,7 +103,8 @@ print(videoMetadata)
 ### Downloading Media
 
 ```python
-import kryptonite
+
+from kryptonite import kryptonite
 
 # Create a TVNZ object
 api = kryptonite.Tvnz()
@@ -114,7 +116,8 @@ api.download_video("2687673", "D:/video.mp4")
 ### Downloading Subtitles
 
 ```python
-import kryptonite
+
+from kryptonite import kryptonite
 
 # Create a TVNZ object
 api = kryptonite.Tvnz()
@@ -127,7 +130,8 @@ print(subtitles)
 ### Logging In and Getting User Information
 
 ```python
-import kryptonite
+
+from kryptonite import kryptonite
 
 # Create a TVNZ object
 api = kryptonite.Tvnz()

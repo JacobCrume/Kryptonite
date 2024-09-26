@@ -4,8 +4,10 @@ import json
 import xmltodict
 import os
 import shutil
+from pathlib import Path
 from urllib.parse import urlparse
-from cdm import cdm, deviceconfig
+from kryptonite.cdm import cdm, deviceconfig
+
 
 class WvDecrypt(object):
     WV_SYSTEM_ID = [
@@ -100,7 +102,12 @@ def getPssh(mpd_url):
         pass
     return pssh
 
-def getDecryptionKeys(mpdUrl, licenceUrl, clientId=f"{os.getcwd()}/cdm/devices/android_generic/client_id.bin", privateKey=f"{os.getcwd()}/cdm/devices/android_generic/private_key.pem", cert_b64=None):
+def getDecryptionKeys(mpdUrl, licenceUrl, clientId="../cdm/devices/android_generic/client_id.bin", privateKey="../cdm/devices/android_generic/private_key.pem", cert_b64=None):
+    # Resolve absolute paths
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    clientId = os.path.join(script_dir, clientId)
+    privateKey = os.path.join(script_dir, privateKey)
+
     # Get PSSH from MPD URL
     pssh = getPssh(mpdUrl)
 

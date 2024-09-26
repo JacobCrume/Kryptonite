@@ -1,10 +1,10 @@
 import requests
-from utils import decrypter, utils
+from .utils import decrypter, utils
 import yt_dlp
 import subprocess
 import os
 import shutil
-from utils.decorators import requires_login
+from .utils.decorators import requires_login
 from requests.exceptions import RequestException
 import logging
 
@@ -118,7 +118,7 @@ class Tvnz:
         elif show_metadata["showType"] == "Movie":
             video_info = self.get_video(show_metadata["watchAction"]["videoHref"].split("/")[-1])
             episodes.append({
-                "season_number": "1",
+                "seasonNumber": "1",
                 "episodes": [video_info]
             })
 
@@ -148,13 +148,13 @@ class Tvnz:
                 "title": channel_schedule["_embedded"][program]["title"],
                 "episodeTitle": channel_schedule["_embedded"][program]["episodeName"],
                 "episodeNumber": channel_schedule["_embedded"][program]["episodeNumber"],
-                "season_number": channel_schedule["_embedded"][program]["season_number"],
+                "seasonNumber": channel_schedule["_embedded"][program]["seasonNumber"],
                 "description": channel_schedule["_embedded"][program]["synopsis"],
                 "duration": utils.convertDuration(channel_schedule["_embedded"][program]["duration"]),
                 "onTime": channel_schedule["_embedded"][program]["onTime"],
                 "offTime": channel_schedule["_embedded"][program]["offTime"],
                 "rating": channel_schedule["_embedded"][program]["certification"],
-                "show_id": channel_schedule["_embedded"][program]["showHref"].split("/")[-1] if
+                "showId": channel_schedule["_embedded"][program]["showHref"].split("/")[-1] if
                 channel_schedule["_embedded"][program]["showHref"] else None
             } for program in channel_schedule["programmes"]]
 
@@ -177,7 +177,7 @@ class Tvnz:
 
         video_info = {
             "title": video_metadata["title"],
-            "video_id": video_metadata["video_id"],
+            "videoId": video_metadata["videoId"],
             "description": video_metadata["synopsis"],
             "url": video_metadata["page"]["url"],
             "duration": utils.convertDuration(video_metadata["duration"]),
@@ -189,11 +189,11 @@ class Tvnz:
             "videoType": video_metadata["videoType"],
             "onTime": video_metadata["onTime"],
             "offTime": video_metadata["offTime"],
-            "show_id": video_metadata["showHref"].split("/")[-1],
-            "season_number": video_metadata["season_number"],
+            "showId": video_metadata["showHref"].split("/")[-1],
+            "seasonNumber": video_metadata["seasonNumber"],
             "episodeNumber": video_metadata["episodeNumber"],
             "brightcove": {
-                "video_id": video_metadata["publisherMetadata"]["brightcoveVideoId"],
+                "videoId": video_metadata["publisherMetadata"]["brightcoveVideoId"],
                 "accountId": video_metadata["publisherMetadata"]["brightcoveAccountId"],
                 "playerId": video_metadata["publisherMetadata"]["brightcovePlayerId"]
             }
@@ -219,7 +219,7 @@ class Tvnz:
             if result["type"] == "show":
                 show = {
                     "title": result["title"],
-                    "show_id": result["show_id"],
+                    "showId": result["showId"],
                     "description": result["synopsis"],
                     "url": result["page"]["url"],
                     "episodesAvailable": result["episodesAvailable"],
@@ -247,7 +247,7 @@ class Tvnz:
             elif result["type"] in ["sportVideo", "newsVideo"]:
                 video = {
                     "title": result["title"],
-                    "video_id": result["video_id"],
+                    "videoId": result["videoId"],
                     "description": result["description"],
                     "url": result["page"]["url"],
                     "coverImage": result["images"][0]["src"],
@@ -255,7 +255,7 @@ class Tvnz:
                     "offTime": result["offTime"],
                     "videoType": result["videoType"],
                     "brightcove": {
-                        "video_id": result["media"]["id"] if result["media"] else None,
+                        "videoId": result["media"]["id"] if result["media"] else None,
                         "accountId": result["media"]["accountId"] if result["media"] else None
                     },
                     "duration": utils.convertDuration(result["media"]["duration"]) if result["media"] else None
@@ -316,7 +316,7 @@ class Tvnz:
         # Get video info, specifically as the video's brightcove id and account id
         video_info = self.get_video(video_id)
         playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove'][
-            'accountId']}/videos/{video_info['brightcove']['video_id']}"
+            'accountId']}/videos/{video_info['brightcove']['videoId']}"
         playback_info = utils.get_json(playback_info_url, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
 
         # Get the decryption keys for the video
@@ -342,7 +342,7 @@ class Tvnz:
         # Decrypt the video and audio files
         subprocess.run(['mp4decrypt', '--key', decryption_keys, 'video.m4a', 'audioDec.m4a'], check=True)
         subprocess.run(['mp4decrypt', '--key', decryption_keys, 'video.mp4', 'videoDec.mp4'], check=True)
-        os.chdir("..")
+        os.chdir("../..")
 
         # Combine the video and audio files
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', 'video/videoDec.mp4', '-i',
@@ -375,7 +375,7 @@ class Tvnz:
         """
         video_info = self.get_video(video_id)
         playback_info_url = f"https://playback.brightcovecdn.com/playback/v1/accounts/{video_info['brightcove'][
-            'accountId']}/videos/{video_info['brightcove']['video_id']}"
+            'accountId']}/videos/{video_info['brightcove']['videoId']}"
         playback_info = utils.get_json(playback_info_url, headers={"Accept": f"application/json;pk={self.POLICY_KEY}"})
 
         # Get the subtitles url and download the subtitles
@@ -508,7 +508,7 @@ class Tvnz:
 
         for video in watched_data["videos"]:
             watched_videos.append({
-                "video_id": video["video_id"],
+                "videoId": video["videoId"],
                 "durationWatched": utils.convertDuration(video["duration"])
             })
 
@@ -573,14 +573,3 @@ class Tvnz:
 
         if response.status_code == 200:
             return show_id
-
-
-def main():
-    api = Tvnz()
-    api.login(input("Email: "), input("Password: "))
-    api.set_active_profile(api.get_user_info()[0]["profile_id"])
-    print(api.get_watchlist())
-
-
-if __name__ == "__main__":
-    main()

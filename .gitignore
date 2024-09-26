@@ -1,5 +1,5 @@
-/cdm/devices/android_generic/client_id.bin
-/cdm/devices/android_generic/private_key.pem
+/kryptonite/cdm/devices/android_generic/client_id.bin
+/kryptonite/cdm/devices/android_generic/private_key.pem
 response.json
 /.venv/
 /video/

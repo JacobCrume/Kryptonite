@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kryptonite"
+version = "1.0.0"
+description = "Get metadata and download videos from verious streaming services"
+readme = "README.md"
+authors = [{ name = "Jacob Crume", email = "jake.crume@gmail.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "Intended Audience :: Developers",
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["metadata", "download", "tvnz"]
+dependencies = [
+    "google~=3.0.0",
+    "protobuf~=5.28.2",
+    "pycryptodomex~=3.20.0",
+    "requests~=2.32.3",
+    "xmltodict~=0.13.0",
+    "yt-dlp~=2024.8.6",
+]
+requires-python = ">=3.10"
+
+[project.urls]
+Homepage = "https://github.com/JacobCrume/kryptonite"
